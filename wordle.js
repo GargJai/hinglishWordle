@@ -1,7 +1,5 @@
 const Wordle = {
-  index: 0,
-  leftIndex: 0,
-  rightIndex: 4,
+  score: 0,
 
   getRandomWord: function () {
     const randomIndex = Math.floor(Math.random() * words.length);
@@ -16,12 +14,48 @@ const Wordle = {
   },
 
   createModal: function (flg) {
+    this.score += this.calculateScore();
+    modal.innerHTML = `
+        <h3>You ${flg ? "Win" : "Lose"}!</h3>
+        <p style="color: red;">${this.answer}</p>
+        <p>You found the solution in ${this.calculateScore()} guesses</p>
+        <p>Your score : ${this.score}</p>
+        <div id="Buttons">
+            <button id="continue"> Continue </button>
+            <button id="restart"> Restart </button>
+        </div>
+    `;
+
+    this.restart = document.querySelector("#restart");
+    this.continue = document.querySelector("#continue");
+
+    restart.addEventListener("click", () => {
+      modal.style.display = "none"; 
+      window.location.reload();
+    });
+
+    this.continue.addEventListener("click", () => {
+      this.onContinue();
+    });
+
     this.board.classList.add("blur-background");
     this.keyboard.classList.add("blur-background");
-    this.modal.style.display = "flex";
-    if (!flg) {
-      this.modal.querySelector("p").innerText = "You Lose!";
-    }
+    this.modal.style.display = "block";
+  },
+
+  calculateScore: function () {
+    let currrow = parseInt(this.rightIndex / 5) + 1;
+
+    return currrow;
+  },
+
+  onContinue: function () {
+    this.board.innerHTML = "";
+    this.keyboard.innerHTML = "";
+    this.modal.style.display = "none";
+    this.board.classList.remove("blur-background");
+    this.keyboard.classList.remove("blur-background");
+    this.init();
   },
 
   onRowChange: function () {
@@ -39,7 +73,7 @@ const Wordle = {
   },
 
   onKeyPress: function (e) {
-    if (this.rightIndex > 29 || this.modal.style.display === "flex") return;
+    if (this.rightIndex > 29 || this.modal.style.display === "block") return;
 
     let key = (e.key || e.target.innerText).toUpperCase();
 
@@ -70,20 +104,18 @@ const Wordle = {
   },
 
   init: function () {
+    this.index = 0;
+    this.leftIndex = 0;
+    this.rightIndex = 4;
     this.board = document.querySelector(".board");
     this.keyboard = document.querySelector(".keyboard");
-    this.modal = document.querySelector(".modal");
+    this.modal = document.querySelector("#modal");
     this.answer = this.getRandomWord().toUpperCase();
 
     this.createGame();
 
     this.keys = document.querySelectorAll(".key");
     this.cells = document.querySelectorAll(".cell");
-
-    const restart = document.querySelector("#restart");
-    restart.addEventListener("click", () => {
-      window.location.reload();
-    });
 
     document.addEventListener("keydown", this.onKeyPress.bind(this));
 
